@@ -1,5 +1,5 @@
 from django import forms
-from .models import Resource
+from .models import Resource, Comment, Rating
 
 class ResourceForm(forms.ModelForm):
     class Meta:
@@ -20,3 +20,13 @@ class ResourceForm(forms.ModelForm):
                 'class': 'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none'
             }),
         }
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['content']
+
+class RatingForm(forms.ModelForm):
+    class Meta:
+        model = Rating
+        fields = ['score']

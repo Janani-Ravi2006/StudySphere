@@ -1,39 +1,45 @@
-from django.shortcuts import render, redirect
-from .forms import ResourceForm
-from .models import Resource
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Resource, Comment, Rating
+from .forms import CommentForm, RatingForm
+from django.db.models import Avg
 
-def upload_resource(request):
-    if request.method == "POST":
-        form = ResourceForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            return redirect("resource_list")
-    else:
-        form = ResourceForm()
-    return render(request, "resources/upload.html", {"form": form})
-
-
+# Step 1: Add this function
 def resource_list(request):
-    resources = Resource.objects.all().order_by("-uploaded_at")
+    resources = Resource.objects.all()  # Get all resources
+    return render(request, 'resources/resource_list.html', {
+        'resources': resources
+    })
 
-    # GET params
-    query = request.GET.get("search", "")
-    category_filter = request.GET.get("category", "")
+# Existing function
+def resource_detail(request, resource_id):
+    resource = get_object_or_404(Resource, id=resource_id)
+    comments = resource.comments.all()
+    ratings = resource.ratings.all()
+    average_rating = ratings.aggregate(Avg('score'))['score__avg']
 
-    # Search by title
-    if query:
-        resources = resources.filter(title__icontains=query)
+    if request.method == 'POST':
+        comment_form = CommentForm(request.POST)
+        rating_form = RatingForm(request.POST)
+        if comment_form.is_valid() and rating_form.is_valid():
+            comment = comment_form.save(commit=False)
+            comment.user = request.user
+            comment.resource = resource
+            comment.save()
 
-    # Filter by category (assuming category is ForeignKey id)
-    if category_filter:
-        resources = resources.filter(category_id=category_filter)
+            rating = rating_form.save(commit=False)
+            rating.user = request.user
+            rating.resource = resource
+            rating.save()
 
-    # Get unique categories for dropdown
-    categories = Resource.objects.values_list('category_id', flat=True).distinct()
+            return redirect('resource_detail', resource_id=resource.id)
+    else:
+        comment_form = CommentForm()
+        rating_form = RatingForm()
 
-    return render(request, "resources/list.html", {
-        "resources": resources,
-        "query": query,
-        "categories": categories,
-        "category_filter": int(category_filter) if category_filter else ""
+    return render(request, 'resources/resource_detail.html', {
+        'resource': resource,
+        'comments': comments,
+        'average_rating': round(average_rating, 1) if average_rating else None,
+        'comment_form': comment_form,
+        'rating_form': rating_form
     })
