@@ -15,5 +15,25 @@ def upload_resource(request):
 
 def resource_list(request):
     resources = Resource.objects.all().order_by("-uploaded_at")
-    return render(request, "resources/list.html", {"resources": resources})
 
+    # GET params
+    query = request.GET.get("search", "")
+    category_filter = request.GET.get("category", "")
+
+    # Search by title
+    if query:
+        resources = resources.filter(title__icontains=query)
+
+    # Filter by category (assuming category is ForeignKey id)
+    if category_filter:
+        resources = resources.filter(category_id=category_filter)
+
+    # Get unique categories for dropdown
+    categories = Resource.objects.values_list('category_id', flat=True).distinct()
+
+    return render(request, "resources/list.html", {
+        "resources": resources,
+        "query": query,
+        "categories": categories,
+        "category_filter": int(category_filter) if category_filter else ""
+    })

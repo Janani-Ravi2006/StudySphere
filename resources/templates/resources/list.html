@@ -4,43 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resources</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        h2 { text-align: center; }
+        form { margin-bottom: 20px; display: flex; gap: 10px; }
+        input, select, button { padding: 8px; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; background-color: #fff; }
+        th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
+        th { background-color: #eee; }
+        tr:hover { background-color: #f1f1f1; }
+        .text-center { text-align: center; }
+        .btn { background-color: #007bff; color: white; border: none; cursor: pointer; }
+        .btn:hover { background-color: #0056b3; }
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen p-8">
+<body>
 
-    <div class="max-w-4xl mx-auto">
-        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">📑 Uploaded Resources</h2>
-        
-        <div class="bg-white shadow rounded-2xl overflow-hidden">
-            <table class="min-w-full table-auto">
-                <thead class="bg-gray-200 text-gray-700">
-                    <tr>
-                        <th class="py-3 px-4 text-left">Title</th>
-                        <th class="py-3 px-4 text-left">Category</th>
-                        <th class="py-3 px-4 text-left">Uploaded At</th>
-                        <th class="py-3 px-4 text-center">Download</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for resource in resources %}
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="py-3 px-4">{{ resource.title }}</td>
-                        <td class="py-3 px-4">{{ resource.category.name }}</td>
-                        <td class="py-3 px-4">{{ resource.uploaded_at|date:"M d, Y H:i" }}</td>
-                        <td class="py-3 px-4 text-center">
-                            <a href="{{ resource.file.url }}" 
-                               class="text-blue-600 font-semibold hover:underline">Download</a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" class="py-4 text-center text-gray-500">No resources uploaded yet.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+<div class="container">
+    <h2>📑 Uploaded Resources</h2>
+
+    <!-- Search & Filter Form -->
+    <form method="get">
+        <input type="text" name="search" placeholder="Search..." value="{{ query }}">
+        <select name="category">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+                <option value="{{ cat }}" {% if cat == category_filter %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn">Search</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Uploaded At</th>
+                <th class="text-center">Download</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for resource in resources %}
+            <tr>
+                <td>{{ resource.title }}</td>
+                <td>{{ resource.category.name }}</td>
+                <td>{{ resource.uploaded_at|date:"M d, Y H:i" }}</td>
+                <td class="text-center">
+                    <a href="{{ resource.file.url }}">Download</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center">No resources uploaded yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
 </body>
 </html>
